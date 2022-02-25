@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+
+_get_mas_installed() {
+    ids=$( mas list | sed 's/\ .*//' || true )
+}
+
+_get_mas_outdated() {
+    ids=$( mas outdated 2>&1 | grep -v ^Warning || true )
+}
+
+_mas() {
+
+    local cur prev commands
+
+    COMPREPLY=()
+
+ 	cur="${COMP_WORDS[COMP_CWORD]}"
+	prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+    commands="account help home info install list lucky open outdated purchase reset search signin signout uninstall upgrade vendor version "
+
+    if [[ ${COMP_CWORD} -eq 1 ]]; then
+        # shellcheck disable=SC2207
+ 		COMPREPLY=( $(compgen -W "${commands}" -- "${cur}") )
+        return 0
+    fi
+
+    # options with arguments
+    case "${prev}" in
+        help)
+            # shellcheck disable=SC2207
+            COMPREPLY=( $(compgen -W "${commands}" -- "${cur}") )
+            ;;
+        install|lucky)
+            if [[  "${cur}" == -* ]]; then
+                # shellcheck disable=SC2207
+ 		        COMPREPLY=( $(compgen -W "--force" -- "${cur}") )
+            fi
+            ;;
+        reset)
+            if [[  "${cur}" == -* ]]; then
+                # shellcheck disable=SC2207
+ 		        COMPREPLY=( $(compgen -W "--debug" -- "${cur}") )
+            fi
+            ;;
+        search)
+            if [[  "${cur}" == -* ]]; then
+                # shellcheck disable=SC2207
+ 		        COMPREPLY=( $(compgen -W "--price" -- "${cur}") )
+            fi
+            ;;
+        signin)
+            if [[  "${cur}" == -* ]]; then
+                # shellcheck disable=SC2207
+ 		        COMPREPLY=( $(compgen -W "--dialog" -- "${cur}") )
+            fi
+            ;;
+        uninstall|--dry-run)
+            if [[  "${cur}" == -* ]]; then
+                # shellcheck disable=SC2207
+                COMPREPLY=( $(compgen -W "--dry-run" -- "${cur}") )
+            else
+                _get_mas_installed
+                # shellcheck disable=SC2207
+                COMPREPLY=( $(compgen -W "${ids}" -- "${cur}") )
+            fi
+            ;;
+        upgrade)
+            _get_mas_outdated
+            # shellcheck disable=SC2207
+            COMPREPLY=( $(compgen -W "${ids}" -- "${cur}") )
+            ;;
+        *)
+            ;;
+    esac
+
+}
+
+complete -F _mas mas
