@@ -1,23 +1,19 @@
 #!/usr/bin/env bash
 
-_get_mas_installed() {
-    ids=$( mas list | sed 's/\ .*//' || true )
+_get_available_updates() {
+    items=$( softwareupdate --list 2>&1 | grep '^\ *[*]\ Label:\ ' | sed 's/^\ *[*]\ Label:\ //' || true )
 }
 
-_get_mas_outdated() {
-    ids=$( mas outdated 2>&1 | grep -v ^Warning || true )
-}
-
-_mas() {
+_softwareupdate() {
 
     local cur prev commands
 
     COMPREPLY=()
 
  	cur="${COMP_WORDS[COMP_CWORD]}"
-	prev="${COMP_WORDS[COMP_CWORD-1]}"
-
-    commands="account help home info install list lucky open outdated purchase reset search signin signout uninstall upgrade vendor version "
+	prev="${COMP_WORDS[COMP_CWORD-1]}"    
+    
+    commands="--list --install --list-full-installers --fetch-full-installer --install-rosetta --download --schedule --help"
 
     if [[ ${COMP_CWORD} -eq 1 ]]; then
         # shellcheck disable=SC2207
@@ -25,50 +21,32 @@ _mas() {
         return 0
     fi
 
-    # options with arguments
+    # commands with arguments
     case "${prev}" in
-        help)
-            # shellcheck disable=SC2207
-            COMPREPLY=( $(compgen -W "${commands}" -- "${cur}") )
-            ;;
-        install|lucky)
+        --install|--download)
+            # To do: get the 'items' with --list
             if [[  "${cur}" == -* ]]; then
                 # shellcheck disable=SC2207
- 		        COMPREPLY=( $(compgen -W "--force" -- "${cur}") )
-            fi
-            ;;
-        reset)
-            if [[  "${cur}" == -* ]]; then
-                # shellcheck disable=SC2207
- 		        COMPREPLY=( $(compgen -W "--debug" -- "${cur}") )
-            fi
-            ;;
-        search)
-            if [[  "${cur}" == -* ]]; then
-                # shellcheck disable=SC2207
- 		        COMPREPLY=( $(compgen -W "--price" -- "${cur}") )
-            fi
-            ;;
-        signin)
-            if [[  "${cur}" == -* ]]; then
-                # shellcheck disable=SC2207
- 		        COMPREPLY=( $(compgen -W "--dialog" -- "${cur}") )
-            fi
-            ;;
-        uninstall|--dry-run)
-            if [[  "${cur}" == -* ]]; then
-                # shellcheck disable=SC2207
-                COMPREPLY=( $(compgen -W "--dry-run" -- "${cur}") )
+ 		        COMPREPLY=( $(compgen -W "--recommended --os-only --safari-only --restart --all --stdinpass --user" -- "${cur}") )
             else
-                _get_mas_installed
+                _get_available_updates
                 # shellcheck disable=SC2207
-                COMPREPLY=( $(compgen -W "${ids}" -- "${cur}") )
+                COMPREPLY=( $(compgen -W "${items}" -- "${cur}") )
             fi
             ;;
-        upgrade)
-            _get_mas_outdated
-            # shellcheck disable=SC2207
-            COMPREPLY=( $(compgen -W "${ids}" -- "${cur}") )
+        --fetch-full-installer)
+            # To do: get the 'items' with --list
+            if [[  "${cur}" == -* ]]; then
+                # shellcheck disable=SC2207
+ 		        COMPREPLY=( $(compgen -W "--full-installer-version" -- "${cur}") )
+            fi
+            ;;
+        --install-rosetta)
+            # To do: get the 'items' with --list
+            if [[  "${cur}" == -* ]]; then
+                # shellcheck disable=SC2207
+ 		        COMPREPLY=( $(compgen -W "--agree-to-license" -- "${cur}") )
+            fi
             ;;
         *)
             ;;
@@ -76,4 +54,4 @@ _mas() {
 
 }
 
-complete -F _mas mas
+complete -F _softwareupdate softwareupdate

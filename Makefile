@@ -5,7 +5,7 @@ clean:
 
 install:
 ifdef COMPLETIONS_DIR
-	cp mas.completion $(COMPLETIONS_DIR)/mas
+	cp softwareupdate.completion $(COMPLETIONS_DIR)/softwareupdate
 else
 	echo "Cannot determine the installtion directory for bash completion scripts"
 endif
